@@ -10,14 +10,19 @@ import atexit
 def run_flask_app():
     """Ejecuta la app Flask en un hilo separado"""
     try:
-        from app import app
+        # Intentar importar Flask
+        try:
+            from app import app
+        except ImportError as e:
+            logging.warning(f"Flask no disponible: {e}")
+            return
+            
         import os
         port = int(os.environ.get('PORT', 5000))
         logging.info(f"🌐 Iniciando servidor Flask en puerto {port}")
         app.run(host='0.0.0.0', port=port, debug=False, use_reloader=False)
     except Exception as e:
         logging.error(f"💥 Error en servidor Flask: {e}")
-        logging.error(traceback.format_exc())
 
 def main():
     """Función principal con captura completa de terminal"""
@@ -35,12 +40,25 @@ def main():
         
         setup_logging()
         
-        # Iniciar Flask en segundo plano
-        flask_thread = threading.Thread(target=run_flask_app, daemon=True)
-        flask_thread.start()
+        # Verificar e instalar dependencias si es necesario
+        try:
+            import flask
+            import requests
+            import bs4
+        except ImportError:
+            print("📦 Instalando dependencias faltantes...")
+            import subprocess
+            subprocess.run(["pip", "install", "-r", "requirements.txt"], check=True)
+            print("✅ Dependencias instaladas")
         
-        print("✅ Servidor Flask iniciado en segundo plano")
-        time.sleep(2)
+        # Iniciar Flask en segundo plano (si está disponible)
+        try:
+            flask_thread = threading.Thread(target=run_flask_app, daemon=True)
+            flask_thread.start()
+            print("✅ Servidor Flask iniciado en segundo plano")
+            time.sleep(2)
+        except Exception as e:
+            print(f"⚠️ Flask no disponible, continuando sin dashboard: {e}")
         
         # Iniciar el scraper
         manager = WorkerManager()
@@ -54,14 +72,6 @@ def main():
     finally:
         print("🔚 Ejecución finalizada")
         stop_terminal_capture()
-        
-        # Mantener el script vivo
-        try:
-            while True:
-                time.sleep(60)
-                print("💤 Scraper completado - Codespace activo (Ctrl+C para salir)")
-        except KeyboardInterrupt:
-            print("👋 Cerrando Codespace...")
 
 if __name__ == "__main__":
     main()
