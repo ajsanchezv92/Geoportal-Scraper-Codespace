@@ -1,0 +1,17 @@
+{
+    "name": "Geoportal Scraper",
+    "image": "mcr.microsoft.com/vscode/devcontainers/python:3.11",
+    "features": {
+        "ghcr.io/devcontainers/features/python:1": {}
+    },
+    "portsAttributes": {
+        "5000": {
+            "label": "Scraper Monitor",
+            "onAutoForward": "openPreview"
+        }
+    },
+    "postCreateCommand": "chmod +x start.sh && pip install -r requirements.txt",
+    "postAttachCommand": {
+        "server": "./start.sh"
+    }
+}
