@@ -22,8 +22,10 @@ fi
 
 echo ""
 echo "🚀 Iniciando aplicación..."
-echo "📊 Dashboard disponible en: https://${CODESPACE_NAME}-5000.${GITHUB_CODESPACES_PORT_FORWARDING_DOMAIN}"
-echo "📝 Logs detallados en: data/debug.log"
+echo "📝 CAPTURA DE TERMINAL ACTIVADA - Todo se guarda en data/terminal_capture.log"
+echo "📊 Para ver logs: python view_logs.py"
+echo "📊 Para ver errores: python view_logs.py errors"
+echo "📈 Para ver estadísticas: python view_logs.py stats"
 echo "⏹️  Para detener: Ctrl+C"
 echo ""
 
