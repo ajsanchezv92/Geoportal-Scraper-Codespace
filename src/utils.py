@@ -5,10 +5,15 @@ import os
 import sys
 from typing import List, Dict, Any
 
+def ensure_data_directory():
+    """Asegura que el directorio data existe"""
+    os.makedirs('data', exist_ok=True)
+    print("✅ Directorio 'data/' creado/verificado")
+
 def setup_logging():
     """Configura el sistema de logging detallado para Codespace"""
-    # Crear directorio data si no existe
-    os.makedirs('data', exist_ok=True)
+    # Crear directorio data si no existe - ESTA ES LA CLAVE
+    ensure_data_directory()
     
     # Configurar logger principal
     logger = logging.getLogger()
@@ -19,7 +24,7 @@ def setup_logging():
         '%(asctime)s - %(name)s - %(levelname)s - [%(filename)s:%(lineno)d] - %(message)s'
     )
     
-    # Handler para archivo (TODO)
+    # Handler para archivo
     file_handler = logging.FileHandler('data/debug.log', encoding='utf-8')
     file_handler.setLevel(logging.DEBUG)
     file_handler.setFormatter(formatter)
@@ -29,24 +34,18 @@ def setup_logging():
     console_handler.setLevel(logging.INFO)
     console_handler.setFormatter(formatter)
     
-    # Handler para errores (solo ERROR y CRITICAL)
-    error_handler = logging.StreamHandler(sys.stderr)
-    error_handler.setLevel(logging.ERROR)
-    error_handler.setFormatter(formatter)
-    
     # Limpiar handlers existentes y agregar los nuevos
     logger.handlers = []
     logger.addHandler(file_handler)
     logger.addHandler(console_handler)
-    logger.addHandler(error_handler)
     
     # Log de inicio
     logging.info("=== SISTEMA DE LOGGING INICIADO ===")
     logging.info("Debug log guardado en: data/debug.log")
-    logging.info("Errores visibles en terminal y archivo")
 
 def save_valid_urls(urls: List[str]):
     """Guarda las URLs válidas en el archivo JSON"""
+    ensure_data_directory()  # ← Asegurar que data existe
     try:
         with open('data/valid_urls.json', 'w', encoding='utf-8') as f:
             json.dump(urls, f, indent=2, ensure_ascii=False)
@@ -56,6 +55,7 @@ def save_valid_urls(urls: List[str]):
 
 def load_valid_urls() -> List[str]:
     """Carga las URLs válidas desde el archivo JSON"""
+    ensure_data_directory()  # ← Asegurar que data existe
     try:
         with open('data/valid_urls.json', 'r', encoding='utf-8') as f:
             urls = json.load(f)
@@ -70,6 +70,7 @@ def load_valid_urls() -> List[str]:
 
 def save_progress(state: Dict[str, Any]):
     """Guarda el estado del progreso"""
+    ensure_data_directory()  # ← Asegurar que data existe
     try:
         with open('data/progress_state.json', 'w', encoding='utf-8') as f:
             json.dump(state, f, indent=2)
@@ -79,6 +80,7 @@ def save_progress(state: Dict[str, Any]):
 
 def load_progress() -> Dict[str, Any]:
     """Carga el estado del progreso"""
+    ensure_data_directory()  # ← Asegurar que data existe
     try:
         with open('data/progress_state.json', 'r', encoding='utf-8') as f:
             state = json.load(f)
