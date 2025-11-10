@@ -5,16 +5,16 @@ import signal
 import sys
 from typing import List
 from config import ALL_CODES, BASE_URL, MAX_WORKERS, BATCH_SIZE, AUTO_SAVE_INTERVAL
-from .scraper import GeoportalScraper
-from .progress_tracker import ProgressTracker
-from .utils import save_valid_urls, load_valid_urls, save_progress, cleanup_on_exit
+from src.scraper import GeoportalScraper
+from src.progress_tracker import ProgressTracker
+from src.utils import save_valid_urls, load_valid_urls, save_progress, load_progress  # ← AÑADIDO load_progress
 
 class WorkerManager:
     def __init__(self):
         self.scraper = GeoportalScraper()
         self.progress_tracker = ProgressTracker()
         self.valid_urls = load_valid_urls()
-        self.progress_state = load_progress()
+        self.progress_state = load_progress()  # ← ESTA ERA LA LÍNEA CON ERROR
         self.is_running = True
         
         # Configurar manejo de señales para Codespace
@@ -25,8 +25,14 @@ class WorkerManager:
         """Maneja señales de interrupción"""
         logging.info(f"Recibida señal {signum}, guardando estado...")
         self.is_running = False
-        cleanup_on_exit()
+        self.cleanup_on_exit()
         sys.exit(0)
+    
+    def cleanup_on_exit(self):
+        """Limpieza antes de salir"""
+        from src.utils import save_valid_urls, save_progress
+        save_valid_urls(self.valid_urls)
+        save_progress(self.progress_state)
     
     def process_batch(self, start_index: int) -> int:
         """Procesa un lote de URLs"""
@@ -50,6 +56,7 @@ class WorkerManager:
                     if result:
                         self.valid_urls.append(result)
                         valid_count += 1
+                        logging.info(f"✅ URL válida encontrada: {result}")
                 except Exception as e:
                     logging.error(f"Error procesando {url}: {e}")
                 
