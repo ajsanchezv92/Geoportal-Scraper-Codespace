@@ -8,14 +8,17 @@ import os
 import threading
 import time
 from datetime import datetime
-from config import LOG_FILE
 
 class TerminalLogger:
     def __init__(self):
         self.original_stdout = sys.stdout
         self.original_stderr = sys.stderr
-        self.log_file = open('data/terminal_capture.log', 'a', encoding='utf-8')
+        self.log_file = None
         self._capturing = False
+        
+    def ensure_data_directory(self):
+        """Asegura que el directorio data existe"""
+        os.makedirs('data', exist_ok=True)
         
     def start_capture(self):
         """Inicia la captura de todo el output del terminal"""
@@ -23,7 +26,10 @@ class TerminalLogger:
             return
             
         # Crear directorio si no existe
-        os.makedirs('data', exist_ok=True)
+        self.ensure_data_directory()
+        
+        # Abrir archivo de log
+        self.log_file = open('data/terminal_capture.log', 'a', encoding='utf-8')
         
         # Escribir header
         self.log_file.write(f"\n{'='*60}\n")
@@ -37,18 +43,21 @@ class TerminalLogger:
         self._capturing = True
         
         print("🔴 CAPTURA DE TERMINAL ACTIVADA - Todo se guarda en data/terminal_capture.log")
+        print("✅ Directorio 'data/' creado automáticamente")
         
     def write(self, text):
         """Escribe tanto en terminal original como en archivo"""
         if text.strip():  # Solo escribir si no está vacío
             self.original_stdout.write(text)
-            self.log_file.write(text)
-            self.log_file.flush()  # Forzar escritura inmediata
+            if self.log_file:
+                self.log_file.write(text)
+                self.log_file.flush()  # Forzar escritura inmediata
             
     def flush(self):
         """Flush para ambos outputs"""
         self.original_stdout.flush()
-        self.log_file.flush()
+        if self.log_file:
+            self.log_file.flush()
         
     def stop_capture(self):
         """Detiene la captura"""
@@ -56,10 +65,11 @@ class TerminalLogger:
             sys.stdout = self.original_stdout
             sys.stderr = self.original_stderr
             
-            self.log_file.write(f"\n{'='*60}\n")
-            self.log_file.write(f"CAPTURA DE TERMINAL DETENIDA: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
-            self.log_file.write(f"{'='*60}\n\n")
-            self.log_file.close()
+            if self.log_file:
+                self.log_file.write(f"\n{'='*60}\n")
+                self.log_file.write(f"CAPTURA DE TERMINAL DETENIDA: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
+                self.log_file.write(f"{'='*60}\n\n")
+                self.log_file.close()
             self._capturing = False
             
             print("🟢 CAPTURA DE TERMINAL DETENIDA")
